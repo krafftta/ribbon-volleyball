@@ -35,3 +35,8 @@ export class Match {
         this.team2 = team2;
     }
 }
+
+export function getRandomTeam(set: Set<Team>): Team {
+    let items = Array.from(set);
+    return items[Math.floor(Math.random() * items.length)];
+}

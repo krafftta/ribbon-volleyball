@@ -1,4 +1,4 @@
-import { Match, Team, Participant } from "./ribbonUtils";
+import { Match, Team, Participant, getRandomTeam } from "./ribbonUtils";
 
 export class Scheduler {
     participants: Participant[];
@@ -36,15 +36,14 @@ export class Scheduler {
         return allPlayers;
     }
 
-    getPossibleConstillations(): [Set<Team>, Set<Team>] {
+    getPossibleConstillations(): Set<Team> {
         let pool = this.getAvailablePlayers();
-        let teams2: Set<Team> = new Set();
-        let teams3: Set<Team> = new Set();
+        let teams: Set<Team> = new Set();
 
         for (let i = 0; i < pool.length; i++) {
             for (let j = i + 1; j < pool.length; j++) {
                 if (pool[i].preferences.includes(2) && pool[j].preferences.includes(2) && pool[i]!== pool[j]) {
-                    teams2.add(new Team([pool[i], pool[j]]))
+                    teams.add(new Team([pool[i], pool[j]]))
                 }
                 for (let k = j + 1; k < pool.length; k++) {
                     if (
@@ -52,12 +51,12 @@ export class Scheduler {
                     pool[j].preferences.includes(3) &&
                     pool[k].preferences.includes(3) 
                     ) {
-                        teams3.add(new Team([pool[i], pool[j], pool[k]]))
+                        teams.add(new Team([pool[i], pool[j], pool[k]]))
                     }
                 }
             }
         }
-        return [teams2, teams3]
+        return teams
     }
 
     startMatch(match: Match): void {
@@ -87,7 +86,19 @@ export class Scheduler {
         }   
     }
 
+    removeUnavailableTeams(teams: Set<Team>, participants: Participant[]): Set<Team> {
+        const participantNames = new Set(participants.map(p => p.name));
+
+        return new Set(Array.from(teams).filter(team => {
+            return !team.participants.some(p => participantNames.has(p.name));
+        }));
+    }
+
     matchmaking() {
-        //pass
+        let possibleTeams = this.getPossibleConstillations()
+        let team1: Team = getRandomTeam(possibleTeams)
+        possibleTeams = this.removeUnavailableTeams(possibleTeams, team1.participants)
+        let team2 = getRandomTeam(possibleTeams); // TODO: other strategy to choose next team
+        this.startMatch(new Match(Math.random(), team1, team2));
     }
 }
