@@ -1,5 +1,7 @@
 import { Match, Team, Participant, getRandomTeam } from "./ribbonUtils";
 
+let globalId: number = 1;
+
 export class Scheduler {
     participants: Participant[];
     playing: Match[];
@@ -27,7 +29,7 @@ export class Scheduler {
         });
     }
 
-    getAvailablePlayers(): Participant[] {
+    getAvailableParticipants(): Participant[] {
         let allPlayers: Participant[] = this.participants;
         for (let m of this.playing) {
             allPlayers = allPlayers.filter(p => m.team1.participants.indexOf(p) < 0);
@@ -36,8 +38,7 @@ export class Scheduler {
         return allPlayers;
     }
 
-    getPossibleConstillations(): Set<Team> {
-        let pool = this.getAvailablePlayers();
+    getPossibleConstillations(pool: Participant[]): Set<Team> {
         let teams: Set<Team> = new Set();
 
         for (let i = 0; i < pool.length; i++) {
@@ -95,10 +96,22 @@ export class Scheduler {
     }
 
     matchmaking() {
-        let possibleTeams = this.getPossibleConstillations()
-        let team1: Team = getRandomTeam(possibleTeams)
-        possibleTeams = this.removeUnavailableTeams(possibleTeams, team1.participants)
-        let team2 = getRandomTeam(possibleTeams); // TODO: other strategy to choose next team
-        this.startMatch(new Match(Math.random(), team1, team2));
+        let availableParticipants = this.getAvailableParticipants()
+        let possibleTeams = this.getPossibleConstillations(availableParticipants)
+
+        if (availableParticipants.length >= 4) {
+            let team1: Team = getRandomTeam(possibleTeams)
+            possibleTeams = this.removeUnavailableTeams(possibleTeams, team1.participants)
+            if (possibleTeams.size >= 1) {
+                let team2 = getRandomTeam(possibleTeams);
+                this.startMatch(new Match(globalId++, team1, team2));
+            } else {
+                console.log("Not enough possible team combinations.")
+                // throw new Error(`Not enough possible team combinations.`);
+            }
+        } else {
+            console.log("Not enough players.")
+            // throw new Error(`Not enough players.`);
+        }
     }
 }

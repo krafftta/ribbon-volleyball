@@ -38,5 +38,9 @@ export class Match {
 
 export function getRandomTeam(set: Set<Team>): Team {
     let items = Array.from(set);
-    return items[Math.floor(Math.random() * items.length)];
+    if (items.length == 1) {
+        return items[0]
+    } else {
+        return items[Math.floor(Math.random() * items.length)];
+    }
 }
