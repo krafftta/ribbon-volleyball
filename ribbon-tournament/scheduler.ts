@@ -95,22 +95,48 @@ export class Scheduler {
         }));
     }
 
-    matchmaking() {
-        let availableParticipants = this.getAvailableParticipants()
-        let possibleTeams = this.getPossibleConstillations(availableParticipants)
+    isFair(availableParticipants: Participant[], team: Team):boolean {
+        let fairnessFactor: boolean[] = [];
+        const average = availableParticipants.reduce((total, next) => total + next.playedMatches, 0) / availableParticipants.length;
+        for (let p of team.participants) {
+            if (p.playedMatches > average) {
+                fairnessFactor.push(false);
+            } else {
+                fairnessFactor.push(true);
+            }
+            for (let q of team.participants) { 
+                if (p != q) {
+                    if (p.formerTeamMates.has(q)) {
+                        fairnessFactor.push(false);
+                    } else {
+                        fairnessFactor.push(true);
+                    }
+                } 
+            }
+        }
+        const count = fairnessFactor.filter(Boolean).length;
+        return count < 2;
+    }
+
+    matchmaking(): Match | undefined {
+        let availableParticipants = this.getAvailableParticipants();
+        let possibleTeams = this.getPossibleConstillations(availableParticipants);
 
         if (availableParticipants.length >= 4) {
-            let team1: Team = getRandomTeam(possibleTeams)
-            possibleTeams = this.removeUnavailableTeams(possibleTeams, team1.participants)
+            let team1: Team = getRandomTeam(possibleTeams);
+            possibleTeams = this.removeUnavailableTeams(possibleTeams, team1.participants);
             if (possibleTeams.size >= 1) {
                 let team2 = getRandomTeam(possibleTeams);
-                this.startMatch(new Match(globalId++, team1, team2));
+                this.isFair(availableParticipants, team2);
+                let match = new Match(globalId++, team1, team2)
+                this.startMatch(match);
+                return match
             } else {
-                console.log("Not enough possible team combinations.")
+                console.log("Not enough possible team combinations. Try again.");
                 // throw new Error(`Not enough possible team combinations.`);
             }
         } else {
-            console.log("Not enough players.")
+            console.log("Not enough players.");
             // throw new Error(`Not enough players.`);
         }
     }
