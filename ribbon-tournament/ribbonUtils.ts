@@ -44,3 +44,13 @@ export function getRandomTeam(set: Set<Team>): Team {
         return items[Math.floor(Math.random() * items.length)];
     }
 }
+
+export function getRandomMatch(set: Set<Match>): Match {
+    let items = Array.from(set);
+    if (items.length == 1) {
+        return items[0]
+    } else {
+        return items[Math.floor(Math.random() * items.length)];
+    }
+}
+

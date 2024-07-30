@@ -1,10 +1,9 @@
-import { Match, Team, Participant, getRandomTeam } from "./ribbonUtils";
-
-let globalId: number = 1;
+import { Match, Team, Participant, getRandomMatch } from "./ribbonUtils";
 
 export class Scheduler {
     participants: Participant[];
     playing: Match[];
+    globalId: number = 1;
 
     constructor(participants: Participant[]) {
         this.participants = participants;
@@ -42,7 +41,7 @@ export class Scheduler {
         let teams: Set<Team> = new Set();
 
         for (let i = 0; i < pool.length; i++) {
-            for (let j = i + 1; j < pool.length; j++) {
+            for (let j = 0; j < pool.length; j++) {
                 if (pool[i].preferences.includes(2) && pool[j].preferences.includes(2) && pool[i]!== pool[j]) {
                     teams.add(new Team([pool[i], pool[j]]))
                 }
@@ -118,19 +117,34 @@ export class Scheduler {
         return count < 2;
     }
 
+    getPossibleMatches(possibleTeams: Set<Team>): Set<Match> {
+        let possibleMatches: Set<Match> = new Set<Match>;
+        for (let t of possibleTeams) {
+            for (let s of possibleTeams) { 
+                if (s !== t) {
+                    const participantNamesOfS = new Set(s.participants.map(p => p.name));
+                    if (!t.participants.some(p => participantNamesOfS.has(p.name))) {
+                        possibleMatches.add(new Match(this.globalId++,t,s));
+                    } 
+                }
+            }
+        }
+        return possibleMatches;
+    }
+
     matchmaking(): Match | undefined {
         let availableParticipants = this.getAvailableParticipants();
         let possibleTeams = this.getPossibleConstillations(availableParticipants);
 
         if (availableParticipants.length >= 4) {
-            let team1: Team = getRandomTeam(possibleTeams);
-            possibleTeams = this.removeUnavailableTeams(possibleTeams, team1.participants);
-            if (possibleTeams.size >= 1) {
-                let team2 = getRandomTeam(possibleTeams);
-                this.isFair(availableParticipants, team2);
-                let match = new Match(globalId++, team1, team2)
-                this.startMatch(match);
-                return match
+            let possibleMatches = this.getPossibleMatches(possibleTeams);
+            console.log(`Participants: ${availableParticipants.length}, Possible Teams: ${possibleTeams.size},Possible Matches: ${possibleMatches.size}`)
+
+            if (possibleMatches.size >= 1) {
+                let choosenMatch = getRandomMatch(possibleMatches)
+                this.startMatch(choosenMatch);
+                return choosenMatch
+                
             } else {
                 console.log("Not enough possible team combinations. Try again.");
                 // throw new Error(`Not enough possible team combinations.`);

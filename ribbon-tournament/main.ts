@@ -22,14 +22,20 @@ scheduler.listParticipants();
 console.log("---Round2---");
 let match = scheduler.matchmaking();
 scheduler.listParticipants();
-//scheduler.finishMatch(1);
+scheduler.finishMatch(scheduler.playing[0].id);
+scheduler.finishMatch(scheduler.playing[0].id);
 
 console.log("---Round3---");
 scheduler.matchmaking();
 scheduler.listParticipants();
-scheduler.finishMatch(2);
 
 console.log("---Round4---");
 scheduler.matchmaking();
 scheduler.listParticipants();
+scheduler.finishMatch(scheduler.playing[0].id);
+
+console.log("---Round5---");
+scheduler.matchmaking();
+scheduler.listParticipants();
+
 
