@@ -2,13 +2,13 @@ export class Participant {
     name: string;
     preferences: (2 | 3)[];
     playedMatches: number;
-    formerTeamMates: Participant[]
+    formerTeamMates: Set<Participant>
   
     constructor(name: string, preferences: (2 | 3)[]) {
       this.name = name;
       this.preferences = preferences;
       this.playedMatches = 0;
-      this.formerTeamMates = [];
+      this.formerTeamMates = new Set();
     }    
   }
 
@@ -25,10 +25,12 @@ export class Team {
 }
 
 export class Match {
+    id: number;
     team1: Team;
     team2: Team;
 
-    constructor(team1: Team, team2:Team) {
+    constructor(id: number, team1: Team, team2:Team) {
+        this.id = id;
         this.team1 = team1;
         this.team2 = team2;
     }

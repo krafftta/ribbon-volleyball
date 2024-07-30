@@ -22,7 +22,8 @@ export class Scheduler {
 
     listParticipants(): void {
         this.participants.forEach(p => {
-            console.log(`Name: ${p.name}, Präferenz: ${p.preferences}, Anzahl Spiele: ${p.playedMatches}`);
+            const formerTeammateNames = Array.from(p.formerTeamMates).map(teammate => teammate.name).join(", ");
+            console.log(`Name: ${p.name}, Präferenz: ${p.preferences}, Anzahl Spiele: ${p.playedMatches}, Bisherige Teammates: ${formerTeammateNames}`);
         });
     }
 
@@ -59,7 +60,34 @@ export class Scheduler {
         return [teams2, teams3]
     }
 
-    newMatch() {
+    startMatch(match: Match): void {
+        this.playing.push(match)
+        for (let p of match.team1.participants) {
+            p.playedMatches++;
+            match.team1.participants.forEach(teammate => {
+                if (teammate.name !== p.name) {
+                    p.formerTeamMates.add(teammate);
+                }
+            });
+        }
+        for (let p of match.team2.participants) {
+            p.playedMatches++;
+            match.team2.participants.forEach(teammate => {
+                if (teammate.name !== p.name) {
+                    p.formerTeamMates.add(teammate);
+                }
+            });
+        }
+    }
+
+    finishMatch(id: number): void {
+        const index = this.playing.findIndex(m => m.id === id);
+        if (index !== -1) {
+            this.playing.splice(index, 1);
+        }   
+    }
+
+    matchmaking() {
         //pass
     }
 }
