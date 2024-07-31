@@ -41,22 +41,24 @@ export class Scheduler {
         let teams: Set<Team> = new Set();
 
         for (let i = 0; i < pool.length; i++) {
-            for (let j = 0; j < pool.length; j++) {
-                if (pool[i].preferences.includes(2) && pool[j].preferences.includes(2) && pool[i]!== pool[j]) {
-                    teams.add(new Team([pool[i], pool[j]]))
+            for (let j = i + 1; j < pool.length; j++) {
+                if (pool[i].preferences.includes(2) && pool[j].preferences.includes(2)) {
+                    let teamMembers = [pool[i], pool[j]];
+                    teams.add(new Team(teamMembers));
                 }
                 for (let k = j + 1; k < pool.length; k++) {
                     if (
-                    pool[i].preferences.includes(3) &&
-                    pool[j].preferences.includes(3) &&
-                    pool[k].preferences.includes(3) 
+                        pool[i].preferences.includes(3) &&
+                        pool[j].preferences.includes(3) &&
+                        pool[k].preferences.includes(3)
                     ) {
-                        teams.add(new Team([pool[i], pool[j], pool[k]]))
+                        let teamMembers = [pool[i], pool[j], pool[k]];
+                        teams.add(new Team(teamMembers));
                     }
                 }
             }
         }
-        return teams
+        return teams;
     }
 
     startMatch(match: Match): void {
@@ -94,34 +96,52 @@ export class Scheduler {
         }));
     }
 
-    isFair(availableParticipants: Participant[], team: Team):boolean {
+    getFairnessScore(availableParticipants: Participant[], team: Team):number {
         let fairnessFactor: boolean[] = [];
         const average = availableParticipants.reduce((total, next) => total + next.playedMatches, 0) / availableParticipants.length;
+        let count = 0;
         for (let p of team.participants) {
             if (p.playedMatches > average) {
                 fairnessFactor.push(false);
             } else {
                 fairnessFactor.push(true);
             }
-            for (let q of team.participants) { 
-                if (p != q) {
-                    if (p.formerTeamMates.has(q)) {
-                        fairnessFactor.push(false);
-                    } else {
-                        fairnessFactor.push(true);
-                    }
-                } 
-            }
         }
-        const count = fairnessFactor.filter(Boolean).length;
-        return count < 2;
+        if (team.participants.length == 2) {
+            if (team.participants[0].formerTeamMates.has(team.participants[1])) {
+                fairnessFactor.push(false);
+            } else {
+                fairnessFactor.push(true);
+            }
+            count = fairnessFactor.filter(Boolean).length;
+        }
+
+        if (team.participants.length == 3) {
+            if (team.participants[0].formerTeamMates.has(team.participants[1])) {
+                fairnessFactor.push(false);
+            } else {
+                fairnessFactor.push(true);
+            }
+            if (team.participants[0].formerTeamMates.has(team.participants[2])) {
+                fairnessFactor.push(false);
+            } else {
+                fairnessFactor.push(true);
+            }
+            if (team.participants[1].formerTeamMates.has(team.participants[2])) {
+                fairnessFactor.push(false);
+            } else {
+                fairnessFactor.push(true);
+            }
+            count = fairnessFactor.filter(Boolean).length * 0.5;
+        }
+        return count;
     }
 
     getPossibleMatches(possibleTeams: Set<Team>): Set<Match> {
         let possibleMatches: Set<Match> = new Set<Match>;
         for (let t of possibleTeams) {
             for (let s of possibleTeams) { 
-                if (s !== t) {
+                if (s != t) {
                     const participantNamesOfS = new Set(s.participants.map(p => p.name));
                     if (!t.participants.some(p => participantNamesOfS.has(p.name))) {
                         possibleMatches.add(new Match(this.globalId++,t,s));
@@ -132,16 +152,32 @@ export class Scheduler {
         return possibleMatches;
     }
 
+    getFairestMatch(availableParticipants: Participant[] ,possibleMatches: Set<Match>): Match {
+        let fairnessPerMatch : { matchId: number, fairnessScore: number }[] = [];
+        let possibleMatchesArray = Array.from(possibleMatches)
+        for (let m of possibleMatchesArray) {
+            let mid = m.id
+            fairnessPerMatch.push({'matchId' : mid, 'fairnessScore' : this.getFairnessScore(availableParticipants, m.team1) + this.getFairnessScore(availableParticipants, m.team2)})
+        }
+        fairnessPerMatch.reduce((prev, curr) => prev.fairnessScore < curr.fairnessScore ? prev : curr);
+        let index = possibleMatchesArray.findIndex(p => p.id === fairnessPerMatch[0].matchId)
+        return possibleMatchesArray[index];
+    }
+
     matchmaking(): Match | undefined {
         let availableParticipants = this.getAvailableParticipants();
         let possibleTeams = this.getPossibleConstillations(availableParticipants);
 
         if (availableParticipants.length >= 4) {
             let possibleMatches = this.getPossibleMatches(possibleTeams);
-            console.log(`Participants: ${availableParticipants.length}, Possible Teams: ${possibleTeams.size},Possible Matches: ${possibleMatches.size}`)
+            console.log(`Participants: ${availableParticipants.length}, Possible Teams: ${possibleTeams.size},Possible Matches: ${possibleMatches.size}`);
 
             if (possibleMatches.size >= 1) {
-                let choosenMatch = getRandomMatch(possibleMatches)
+                let choosenMatch = this.getFairestMatch(availableParticipants, possibleMatches)
+                for (let p of choosenMatch.team1.participants) {
+                    console.log(p.name)
+                }
+          
                 this.startMatch(choosenMatch);
                 return choosenMatch
                 
