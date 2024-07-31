@@ -9,7 +9,10 @@ let participants = [
     new Participant("Birgit",   [3]),
     new Participant("Nena",     [2]),
     new Participant("Jogy",     [2,3]),
-    new Participant("Susi",     [2])
+    new Participant("Susi",     [2]),
+    new Participant("A",        [2]),
+    new Participant("B",        [2,3]),
+    new Participant("C",        [2])
 ];
 let scheduler = new Scheduler(participants);
 
@@ -23,7 +26,7 @@ console.log("---Round2---");
 let match = scheduler.matchmaking();
 scheduler.listParticipants();
 scheduler.finishMatch(scheduler.playing[0].id);
-scheduler.finishMatch(scheduler.playing[0].id);
+//scheduler.finishMatch(scheduler.playing[0].id);
 
 console.log("---Round3---");
 scheduler.matchmaking();
@@ -37,5 +40,6 @@ scheduler.finishMatch(scheduler.playing[0].id);
 console.log("---Round5---");
 scheduler.matchmaking();
 scheduler.listParticipants();
+
 
 

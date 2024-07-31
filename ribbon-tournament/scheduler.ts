@@ -1,4 +1,4 @@
-import { Match, Team, Participant, getRandomMatch } from "./ribbonUtils";
+import { Match, Team, Participant, shuffle } from "./ribbonUtils";
 
 export class Scheduler {
     participants: Participant[];
@@ -159,14 +159,15 @@ export class Scheduler {
             let mid = m.id
             fairnessPerMatch.push({'matchId' : mid, 'fairnessScore' : this.getFairnessScore(availableParticipants, m.team1) + this.getFairnessScore(availableParticipants, m.team2)})
         }
-        fairnessPerMatch.reduce((prev, curr) => prev.fairnessScore < curr.fairnessScore ? prev : curr);
-        let index = possibleMatchesArray.findIndex(p => p.id === fairnessPerMatch[0].matchId)
+        // Get smallest fairnessScore
+        fairnessPerMatch.sort((a, b) => b.fairnessScore - a.fairnessScore);
+        let index = possibleMatchesArray.findIndex(p => p.id === fairnessPerMatch[0].matchId);
         return possibleMatchesArray[index];
     }
 
     matchmaking(): Match | undefined {
         let availableParticipants = this.getAvailableParticipants();
-        let possibleTeams = this.getPossibleConstillations(availableParticipants);
+        let possibleTeams = this.getPossibleConstillations(shuffle(availableParticipants));
 
         if (availableParticipants.length >= 4) {
             let possibleMatches = this.getPossibleMatches(possibleTeams);
@@ -174,10 +175,6 @@ export class Scheduler {
 
             if (possibleMatches.size >= 1) {
                 let choosenMatch = this.getFairestMatch(availableParticipants, possibleMatches)
-                for (let p of choosenMatch.team1.participants) {
-                    console.log(p.name)
-                }
-          
                 this.startMatch(choosenMatch);
                 return choosenMatch
                 
