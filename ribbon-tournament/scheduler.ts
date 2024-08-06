@@ -175,6 +175,7 @@ export class Scheduler {
 
             if (possibleMatches.size >= 1) {
                 let choosenMatch = this.getFairestMatch(availableParticipants, possibleMatches)
+                console.log(choosenMatch.team1.participants.length, "x", choosenMatch.team2.participants.length)
                 this.startMatch(choosenMatch);
                 return choosenMatch
                 
