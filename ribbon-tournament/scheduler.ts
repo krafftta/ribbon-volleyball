@@ -152,20 +152,19 @@ export class Scheduler {
         return possibleMatches;
     }
 
-    getFairestMatch(availableParticipants: Participant[] ,possibleMatches: Set<Match>): Match {
-        let fairnessPerMatch : { matchId: number, fairnessScore: number }[] = [];
+    getFairestMatches(availableParticipants: Participant[] ,possibleMatches: Set<Match>): Match[] {
+        let fairnessPerMatch : {match:Match, fairnessScore: number }[] = [];
         let possibleMatchesArray = Array.from(possibleMatches)
         for (let m of possibleMatchesArray) {
             let mid = m.id
-            fairnessPerMatch.push({'matchId' : mid, 'fairnessScore' : this.getFairnessScore(availableParticipants, m.team1) + this.getFairnessScore(availableParticipants, m.team2)})
+            fairnessPerMatch.push({'match': m, 'fairnessScore' : this.getFairnessScore(availableParticipants, m.team1) + this.getFairnessScore(availableParticipants, m.team2)})
         }
         // Get smallest fairnessScore
         fairnessPerMatch.sort((a, b) => b.fairnessScore - a.fairnessScore);
-        let index = possibleMatchesArray.findIndex(p => p.id === fairnessPerMatch[0].matchId);
-        return possibleMatchesArray[index];
+        return fairnessPerMatch.map(f => f.match);
     }
 
-    matchmaking(): Match | undefined {
+    matchmaking(): [Match, Match[]] {
         let availableParticipants = this.getAvailableParticipants();
         let possibleTeams = this.getPossibleConstillations(shuffle(availableParticipants));
 
@@ -174,18 +173,18 @@ export class Scheduler {
             console.log(`Participants: ${availableParticipants.length}, Possible Teams: ${possibleTeams.size},Possible Matches: ${possibleMatches.size}`);
 
             if (possibleMatches.size >= 1) {
-                let choosenMatch = this.getFairestMatch(availableParticipants, possibleMatches)
+                let matchesSortedForFairness = this.getFairestMatches(availableParticipants, possibleMatches)
+                let choosenMatch = matchesSortedForFairness[0]
                 console.log(choosenMatch.team1.participants.length, "x", choosenMatch.team2.participants.length)
-                this.startMatch(choosenMatch);
-                return choosenMatch
+                return [choosenMatch, matchesSortedForFairness]
                 
             } else {
                 console.log("Not enough possible team combinations. Try again.");
-                // throw new Error(`Not enough possible team combinations.`);
+                throw new Error(`Not enough possible team combinations.`);
             }
         } else {
             console.log("Not enough players.");
-            // throw new Error(`Not enough players.`);
+            throw new Error(`Not enough players.`);
         }
     }
 }

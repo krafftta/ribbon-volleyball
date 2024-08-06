@@ -28,20 +28,22 @@ let participants = [
 let scheduler = new Scheduler(participants);
 
 // intial games: 3 courts to play on
-scheduler.matchmaking();
-scheduler.matchmaking();
-scheduler.matchmaking();
+let chosenMatch = scheduler.matchmaking()[0];
+scheduler.startMatch(chosenMatch)
+chosenMatch = scheduler.matchmaking()[0];
+scheduler.startMatch(chosenMatch)
+chosenMatch = scheduler.matchmaking()[0];
+scheduler.startMatch(chosenMatch)
 
 for (let i=3; i<49; i++) {
     console.log(`---Round ${i+1} ---`);
     scheduler.finishMatch(scheduler.playing[0].id);
-    scheduler.matchmaking();
+    chosenMatch = scheduler.matchmaking()[0];
+    scheduler.startMatch(chosenMatch)
 }
 
 scheduler.listParticipants();
 
 // scheduler.addParticipant(new Participant("Anja", [3]));
-
-
 
 
