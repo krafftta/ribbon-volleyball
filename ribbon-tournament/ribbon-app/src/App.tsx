@@ -23,9 +23,6 @@ const App: React.FC = () => {
 
   };
 
- 
-  
-
   return (
     <div className="App">
       <span className='heading'> Schleifchenturnier </span>
@@ -39,3 +36,5 @@ const App: React.FC = () => {
 }
 
 export default App;
+
+// timestamp: 40:49, https://www.youtube.com/watch?v=FJDVKeh7RJI
