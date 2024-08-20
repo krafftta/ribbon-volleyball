@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Halant:wght@300;400;500;600;700&display=swap');
+
+.App {
+  width: 100vw;
+  height: 100vh;
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  background-color:  #e9d79f;  
+  font-family: "Halant", cursive;
+}
+
+.heading {
+  text-transform: uppercase;
+  font-size: 40px;
+  margin: 30px 0;
+  color: rgb(255, 255, 255);
+  z-index: 1;  /* always on top */
+  text-align:center;
+}
+
+@media (max-width: 800px) { /* change margin and font size if screen smaller than 800px */
+  .heading {
+    margin: 15px 0;
+    font-size: 35px;
+  }
+}
