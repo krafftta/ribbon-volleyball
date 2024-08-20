@@ -139,11 +139,11 @@ export class Scheduler {
 
     getPossibleMatches(possibleTeams: Set<Team>): Set<Match> {
         let possibleMatches: Set<Match> = new Set<Match>;
-        for (let t of possibleTeams) {
-            for (let s of possibleTeams) { 
+        for (let t of Array.from(possibleTeams.values())) {
+            for (let s of Array.from(possibleTeams.values())) { 
                 if (s != t) {
-                    const participantNamesOfS = new Set(s.participants.map(p => p.name));
-                    if (!t.participants.some(p => participantNamesOfS.has(p.name))) {
+                    const participantNamesOfS = new Set(s.participants.map((p:Participant) => p.name));
+                    if (!t.participants.some((p:Participant) => participantNamesOfS.has(p.name))) {
                         possibleMatches.add(new Match(this.globalId++,t,s));
                     } 
                 }
